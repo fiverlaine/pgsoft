@@ -86,7 +86,7 @@ exports.default = {
     },
     adicionarZeroAntes(numero) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Number("0." + numero.toString());
+            return Number(numero) / 100;
         });
     },
     determinarResultado(probabilidadeGanho, probabilidadebonus, id, gamecode) {
@@ -105,15 +105,9 @@ exports.default = {
             if (resultadoAleatorio < probabilidadeGanho) {
                 if (resultadoAleatorio < probabilidadebonus) {
                     const user = yield this.getuserbyid(id);
-                    if (user[0].isinfluencer === 1) {
-                        const validInfluencerBonuses = [1, 2, 3, 4];
-                        numeroAleatorio = validInfluencerBonuses[Math.floor(Math.random() * validInfluencerBonuses.length)];
-                        yield this.addcall(gamecode, id, numeroAleatorio);
-                    }
-                    else {
-                        numeroAleatorio = 12;
-                        yield this.addcall(gamecode, id, numeroAleatorio);
-                    }
+                    const validBonuses = [1, 2, 3, 4, 12];
+                    numeroAleatorio = validBonuses[Math.floor(Math.random() * validBonuses.length)];
+                    yield this.addcall(gamecode, id, numeroAleatorio);
                     return { result: "ganho" };
                 }
                 else {

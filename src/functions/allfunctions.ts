@@ -54,7 +54,7 @@ export default {
       return res[0]
    },
    async adicionarZeroAntes(numero: number) {
-      return Number("0." + numero.toString())
+      return Number(numero) / 100
    },
    async determinarResultado(probabilidadeGanho: number, probabilidadebonus: number, id: number, gamecode: string) {
       const resultadoAleatorio = Math.random()
@@ -74,14 +74,9 @@ export default {
          if (resultadoAleatorio < probabilidadebonus) {
             const user = await this.getuserbyid(id)
 
-            if (user[0].isinfluencer === 1) {
-               const validInfluencerBonuses = [1, 2, 3, 4];
-               numeroAleatorio = validInfluencerBonuses[Math.floor(Math.random() * validInfluencerBonuses.length)];
-               await this.addcall(gamecode, id, numeroAleatorio)
-            } else {
-               numeroAleatorio = 12;
-               await this.addcall(gamecode, id, numeroAleatorio)
-            }
+            const validBonuses = [1, 2, 3, 4, 12];
+            numeroAleatorio = validBonuses[Math.floor(Math.random() * validBonuses.length)];
+            await this.addcall(gamecode, id, numeroAleatorio)
             return { result: "ganho" }
          } else {
             return { result: "ganho" }
