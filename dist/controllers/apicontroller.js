@@ -17,6 +17,24 @@ const logger_1 = __importDefault(require("../logger"));
 require("dotenv/config");
 const apifunctions_1 = __importDefault(require("../functions/apifunctions"));
 const uuid_1 = require("uuid");
+function publicApiBaseUrl() {
+    var _a;
+    const raw = ((_a = process.env.DOMINIO_API) !== null && _a !== void 0 ? _a : "").trim().replace(/\/$/, "");
+    const host = raw.replace(/^https?:\/\//i, "");
+    return host ? `https://${host}` : "https://pgsoft-production.up.railway.app";
+}
+function buildLaunchUrl(codegame, token) {
+    const base = publicApiBaseUrl();
+    const host = base.replace(/^https?:\/\//i, "");
+    const q = new URLSearchParams({
+        operator_token: "Zm9saWFiZXQ=",
+        btt: "1",
+        t: token,
+        or: host,
+        api: host,
+    });
+    return `${base}/${codegame}/index.html?${q.toString()}`;
+}
 exports.default = {
     launchgame(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -27,6 +45,7 @@ exports.default = {
             const provider_code = req.body.provider_code;
             const game_code = req.body.game_code;
             const user_balance = req.body.user_balance;
+            const is_influencer = req.body.is_influencer === true || req.body.is_influencer === 1 || req.body.is_influencer === '1' || req.body.user_type === 'influencer';
             try {
                 if (!user_code) {
                     res.send({
@@ -99,13 +118,13 @@ exports.default = {
                 if (user.length === 0) {
                     const tokenuser = (0, uuid_1.v4)();
                     const atkuser = (0, uuid_1.v4)();
-                    const createnewuser = yield apifunctions_1.default.createuser(user_code, tokenuser, atkuser, user_balance, agent[0].id);
+                    const createnewuser = yield apifunctions_1.default.createuser(user_code, tokenuser, atkuser, user_balance, agent[0].id, is_influencer);
                     if (createnewuser.affectedRows >= 1) {
                         const getnewuser = yield apifunctions_1.default.getuserbyagent(user_code, agent[0].id);
                         res.send({
                             status: 1,
                             msg: "SUCCESS",
-                            launch_url: `https://brabobet.top/${codegame}/index.html?operator_token=Zm9saWFiZXQ=&btt=1&t=${getnewuser[0].token}&or=brabobet.top&api=brabobet.top`,
+                            launch_url: buildLaunchUrl(codegame, getnewuser[0].token),
                             user_code: getnewuser[0].username,
                             user_balance: getnewuser[0].saldo,
                             user_created: true,
@@ -121,11 +140,11 @@ exports.default = {
                     }
                 }
                 else {
-                    yield apifunctions_1.default.setbalanceuserbyid(user[0].id, user_balance);
+                    yield apifunctions_1.default.updateUserInfluencerAndBalance(user[0].id, user_balance, is_influencer);
                     res.send({
                         status: 1,
                         msg: "SUCCESS",
-                        launch_url: `https://brabobet.top/${codegame}/index.html?operator_token=Zm9saWFiZXQ=&btt=1&t=${user[0].token}&or=brabobet.top&api=brabobet.top`,
+                        launch_url: buildLaunchUrl(codegame, user[0].token),
                         user_code: user[0].username,
                         user_balance: user[0].saldo,
                         user_created: false,

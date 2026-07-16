@@ -38,9 +38,17 @@ exports.default = {
             return res[0];
         });
     },
-    createuser(user_code, tokenuser, atkuser, balance, agentid) {
+    createuser(user_code, tokenuser, atkuser, balance, agentid, is_influencer) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield database_1.default.query("INSERT INTO users (username,token,atk,saldo,agentid) VALUES(?,?,?,?,?)", [user_code, tokenuser, atkuser, balance, agentid]);
+            const val = is_influencer ? 1 : 0;
+            const res = yield database_1.default.query("INSERT INTO users (username,token,atk,saldo,agentid,is_influencer,isinfluencer) VALUES(?,?,?,?,?,?,?)", [user_code, tokenuser, atkuser, balance, agentid, val, val]);
+            return res[0];
+        });
+    },
+    updateUserInfluencerAndBalance(id, balance, is_influencer) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const val = is_influencer ? 1 : 0;
+            const res = yield database_1.default.query("UPDATE users SET saldo = ?, is_influencer = ?, isinfluencer = ? WHERE id=?", [balance, val, val, id]);
             return res[0];
         });
     },

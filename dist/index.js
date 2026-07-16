@@ -134,6 +134,57 @@ io.on("connection", (socket) => __awaiter(void 0, void 0, void 0, function* () {
 app.use((0, cors_1.default)({ credentials: true }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+    const isHtmlRequest = req.path.endsWith("/index.html") || req.path === "/" || req.path.endsWith("/");
+    if (isHtmlRequest) {
+        const publicPath = path_1.default.join(__dirname, "public");
+        const relativePath = req.path.endsWith("/index.html") ? req.path : path_1.default.join(req.path, "index.html");
+        const filePath = path_1.default.join(publicPath, relativePath);
+        if (fs_1.default.existsSync(filePath)) {
+            try {
+                let html = fs_1.default.readFileSync(filePath, "utf8");
+                const patchScript = `
+<script>
+(function() {
+    var open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+        if (url) {
+            var urlStr = url.toString();
+            urlStr = urlStr.replace('api.up.railway.app', window.location.host);
+            url = urlStr;
+        }
+        return open.apply(this, arguments);
+    };
+
+    var originalFetch = window.fetch;
+    if (originalFetch) {
+        window.fetch = function(input, init) {
+            if (typeof input === 'string') {
+                input = input.replace('api.up.railway.app', window.location.host);
+            } else if (input instanceof URL) {
+                var urlStr = input.toString().replace('api.up.railway.app', window.location.host);
+                input = new URL(urlStr);
+            } else if (input && typeof input === 'object' && input.url) {
+                var urlStr = input.url.toString().replace('api.up.railway.app', window.location.host);
+                input = new Request(urlStr, input);
+            }
+            return originalFetch.call(this, input, init);
+        };
+    }
+})();
+</script>
+            `;
+                html = html.replace("<head>", `<head>${patchScript}`);
+                res.setHeader("Content-Type", "text/html");
+                return res.send(html);
+            }
+            catch (e) {
+                index_1.default.error("Error patching index.html: " + e);
+            }
+        }
+    }
+    next();
+});
 app.use("/", express_1.default.static(path_1.default.join(__dirname, "public")));
 app.use(helmet_1.default.contentSecurityPolicy({
     useDefaults: false,

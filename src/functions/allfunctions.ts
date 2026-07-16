@@ -75,10 +75,11 @@ export default {
             const user = await this.getuserbyid(id)
 
             if (user[0].isinfluencer === 1) {
-               numeroAleatorio = Math.floor(Math.random() * 6) + 1
+               const validInfluencerBonuses = [1, 2, 3, 4];
+               numeroAleatorio = validInfluencerBonuses[Math.floor(Math.random() * validInfluencerBonuses.length)];
                await this.addcall(gamecode, id, numeroAleatorio)
             } else {
-               numeroAleatorio = Math.floor(Math.random() * (12 - 7 + 1)) + 7
+               numeroAleatorio = 12;
                await this.addcall(gamecode, id, numeroAleatorio)
             }
             return { result: "ganho" }
