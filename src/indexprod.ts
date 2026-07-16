@@ -125,6 +125,40 @@ app.use((req: Request, res: Response, next) => {
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+app.use((req, res, next) => {
+   const isHtmlRequest = req.path.endsWith("/index.html") || req.path === "/" || req.path.endsWith("/");
+   if (isHtmlRequest) {
+      const publicPath = path.join(__dirname, "public");
+      const relativePath = req.path.endsWith("/index.html") ? req.path : path.join(req.path, "index.html");
+      const filePath = path.join(publicPath, relativePath);
+      if (fs.existsSync(filePath)) {
+         try {
+            let html = fs.readFileSync(filePath, "utf8");
+            const patchScript = `
+<script>
+(function() {
+    var open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
+        if (typeof url === 'string') {
+            url = url.replace('api.up.railway.app', window.location.host);
+        }
+        return open.apply(this, arguments);
+    };
+})();
+</script>
+            `;
+            html = html.replace("<head>", `<head>${patchScript}`);
+            res.setHeader("Content-Type", "text/html");
+            return res.send(html);
+         } catch (e) {
+            logger.error("Error patching index.html: " + e);
+         }
+      }
+   }
+   next()
+})
+
 app.use("/", express.static(path.join(__dirname, "public")))
 app.use(
    helmet.contentSecurityPolicy({
