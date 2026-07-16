@@ -33,6 +33,7 @@ export default {
       const provider_code = req.body.provider_code
       const game_code = req.body.game_code
       const user_balance: number = req.body.user_balance
+      const is_influencer = req.body.is_influencer === true || req.body.is_influencer === 1 || req.body.is_influencer === '1' || req.body.user_type === 'influencer';
 
       try {
          if (!user_code) {
@@ -99,7 +100,7 @@ export default {
          if (user.length === 0) {
             const tokenuser = v4()
             const atkuser = v4()
-            const createnewuser = await apifunctions.createuser(user_code, tokenuser, atkuser, user_balance, agent[0].id)
+            const createnewuser = await apifunctions.createuser(user_code, tokenuser, atkuser, user_balance, agent[0].id, is_influencer)
 
             if (createnewuser.affectedRows >= 1) {
                const getnewuser = await apifunctions.getuserbyagent(user_code, agent[0].id)
@@ -121,7 +122,7 @@ export default {
                return false
             }
          } else {
-            await apifunctions.setbalanceuserbyid(user[0].id, user_balance)
+            await apifunctions.updateUserInfluencerAndBalance(user[0].id, user_balance, is_influencer)
 
             res.send({
                status: 1,

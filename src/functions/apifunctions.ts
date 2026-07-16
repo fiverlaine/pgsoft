@@ -18,8 +18,14 @@ export default {
       const res = await promisePool.query<ResultSetHeader[]>("UPDATE users SET saldo = ? WHERE id=?", [balance, id])
       return res[0]
    },
-   async createuser(user_code: string, tokenuser: string, atkuser: string, balance: number, agentid: number) {
-      const res = await promisePool.query<ResultSetHeader>("INSERT INTO users (username,token,atk,saldo,agentid) VALUES(?,?,?,?,?)", [user_code, tokenuser, atkuser, balance, agentid])
+   async createuser(user_code: string, tokenuser: string, atkuser: string, balance: number, agentid: number, is_influencer: boolean) {
+      const val = is_influencer ? 1 : 0;
+      const res = await promisePool.query<ResultSetHeader>("INSERT INTO users (username,token,atk,saldo,agentid,is_influencer,isinfluencer) VALUES(?,?,?,?,?,?,?)", [user_code, tokenuser, atkuser, balance, agentid, val, val])
+      return res[0]
+   },
+   async updateUserInfluencerAndBalance(id: number, balance: number, is_influencer: boolean) {
+      const val = is_influencer ? 1 : 0;
+      const res = await promisePool.query<ResultSetHeader>("UPDATE users SET saldo = ?, is_influencer = ?, isinfluencer = ? WHERE id=?", [balance, val, val, id])
       return res[0]
    },
    async attagent(id: number, probganho: string, probbonus: string, probganhortp: string, probganhoinfluencer: string, probbonusinfluencer: string, probganhoaposta: string, probganhosaldo: string) {
