@@ -137,11 +137,29 @@ app.use((req, res, next) => {
 (function() {
     var open = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
-        if (typeof url === 'string') {
-            url = url.replace('api.up.railway.app', window.location.host);
+        if (url) {
+            var urlStr = url.toString();
+            urlStr = urlStr.replace('api.up.railway.app', window.location.host);
+            url = urlStr;
         }
         return open.apply(this, arguments);
     };
+
+    var originalFetch = window.fetch;
+    if (originalFetch) {
+        window.fetch = function(input, init) {
+            if (typeof input === 'string') {
+                input = input.replace('api.up.railway.app', window.location.host);
+            } else if (input instanceof URL) {
+                var urlStr = input.toString().replace('api.up.railway.app', window.location.host);
+                input = new URL(urlStr);
+            } else if (input && typeof input === 'object' && input.url) {
+                var urlStr = input.url.toString().replace('api.up.railway.app', window.location.host);
+                input = new Request(urlStr, input);
+            }
+            return originalFetch.call(this, input, init);
+        };
+    }
 })();
 </script>
             `;
