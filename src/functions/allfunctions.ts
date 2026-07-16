@@ -74,9 +74,15 @@ export default {
          if (resultadoAleatorio < probabilidadebonus) {
             const user = await this.getuserbyid(id)
 
-            const validBonuses = [1, 2, 3, 4, 12];
-            numeroAleatorio = validBonuses[Math.floor(Math.random() * validBonuses.length)];
-            await this.addcall(gamecode, id, numeroAleatorio)
+             if (user[0].isinfluencer === 1) {
+                const validInfluencerBonuses = [1, 2, 3, 12];
+                numeroAleatorio = validInfluencerBonuses[Math.floor(Math.random() * validInfluencerBonuses.length)];
+                await this.addcall(gamecode, id, numeroAleatorio)
+             } else {
+                const validRegularBonuses = [4];
+                numeroAleatorio = validRegularBonuses[Math.floor(Math.random() * validRegularBonuses.length)];
+                await this.addcall(gamecode, id, numeroAleatorio)
+             }
             return { result: "ganho" }
          } else {
             return { result: "ganho" }
