@@ -5,6 +5,25 @@ import "dotenv/config"
 import apifunctions from "../functions/apifunctions"
 import { v4 } from "uuid"
 
+function publicApiBaseUrl(): string {
+   const raw = (process.env.DOMINIO_API ?? "").trim().replace(/\/$/, "")
+   const host = raw.replace(/^https?:\/\//i, "")
+   return host ? `https://${host}` : "https://pgsoft-production.up.railway.app"
+}
+
+function buildLaunchUrl(codegame: number, token: string): string {
+   const base = publicApiBaseUrl()
+   const host = base.replace(/^https?:\/\//i, "")
+   const q = new URLSearchParams({
+      operator_token: "Zm9saWFiZXQ=",
+      btt: "1",
+      t: token,
+      or: host,
+      api: host,
+   })
+   return `${base}/${codegame}/index.html?${q.toString()}`
+}
+
 export default {
    async launchgame(req: Request, res: Response) {
       const agentToken = req.body.agentToken
@@ -88,7 +107,7 @@ export default {
                res.send({
                   status: 1,
                   msg: "SUCCESS",
-                  launch_url: `https://m.pgsoft.com/${codegame}/index.html?operator_token=Zm9saWFiZXQ=&btt=1&t=${getnewuser[0].token}&or=m.pgsoft.com&api=m.pgsoft.com`,
+                  launch_url: buildLaunchUrl(codegame, getnewuser[0].token),
                   user_code: getnewuser[0].username,
                   user_balance: getnewuser[0].saldo,
                   user_created: true,
@@ -107,7 +126,7 @@ export default {
             res.send({
                status: 1,
                msg: "SUCCESS",
-               launch_url: `https://m.pgsoft.com/${codegame}/index.html?operator_token=Zm9saWFiZXQ=&btt=1&t=${user[0].token}&or=m.pgsoft.com&api=m.pgsoft.com`,
+               launch_url: buildLaunchUrl(codegame, user[0].token),
                user_code: user[0].username,
                user_balance: user[0].saldo,
                user_created: false,
